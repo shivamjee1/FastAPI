@@ -9,7 +9,8 @@ class todoCreate(BaseModel):
     completed: bool=False
     
 todos = []
-next_id =todos.count("id") + 1
+
+next_id = 1
 
 @app.get("/home")
 def home():
