@@ -1,7 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,Depends
 from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from .config import settings
+from .database import get_db
+
 debugs:bool =False
 app = FastAPI(title="Todo App", debug = debugs)
 
@@ -18,13 +22,6 @@ next_id = 1
 def home():
     return {"massage": "this is todo app"}
 
-
-@app.get("/config-test")
-def config_test():
-    return {
-        "database_configured": settings.DATABASE_URL is not None,
-        "database_url": settings.DATABASE_URL
-    }
 
 
 @app.get("/todos")
@@ -73,3 +70,18 @@ def update_todo(todo_id: int, new_todo:todoCreate):
             todo["completed"] =new_todo.completed
             return {"details" : "todo updated"}
     raise HTTPException(status_code=404, detail="todo not available")
+
+@app.get("/config-test")
+def config_test():
+    return {
+        "database_configured": settings.DATABASE_URL is not None,
+        "database_url": settings.DATABASE_URL
+    }
+
+@app.get("/db-test")
+def db_test(db:Session=Depends(get_db)):
+    result= db.execute(text("SELECT 1"))
+
+    return {
+        "database" :result.scalar()
+    }
