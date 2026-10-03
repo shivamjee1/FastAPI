@@ -11,7 +11,7 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-Base = declarative_base()
+Base = declarative_base()#used in the table creation phase
 
 def get_db():
     db=SessionLocal()

@@ -202,3 +202,9 @@ This phase connects the API request lifecycle with the database session lifecycl
                       │
                       ▼
                Close Session
+
+#phase 8 table creation by fastapi in db 
+
+used basic instruction to create table in the database 
+Base.metadata.create_all(bind=engine)
+

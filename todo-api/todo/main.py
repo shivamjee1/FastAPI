@@ -4,7 +4,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .database import get_db
+from .database import get_db, Base, engine
+from . import models
 
 debugs:bool =False
 app = FastAPI(title="Todo App", debug = debugs)
@@ -17,6 +18,8 @@ class todoCreate(BaseModel):
 todos = []
 
 next_id = 1
+
+Base.metadata.create_all(bind=engine)
 
 @app.get("/home")
 def home():
