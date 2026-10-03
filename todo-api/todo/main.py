@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from .config import DATABASE_URL
-
-app = FastAPI()
+from .config import settings
+debugs:bool =False
+app = FastAPI(title="Todo App", debug = debugs)
 
 class todoCreate(BaseModel):
     title: str
@@ -22,8 +22,8 @@ def home():
 @app.get("/config-test")
 def config_test():
     return {
-        "database_configured": DATABASE_URL is not None,
-        "database_url": DATABASE_URL
+        "database_configured": settings.DATABASE_URL is not None,
+        "database_url": settings.DATABASE_URL
     }
 
 
