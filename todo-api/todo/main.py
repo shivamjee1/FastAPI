@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from .config import DATABASE_URL
+
 app = FastAPI()
 
 class todoCreate(BaseModel):
@@ -15,6 +17,14 @@ next_id = 1
 @app.get("/home")
 def home():
     return {"massage": "this is todo app"}
+
+
+@app.get("/config-test")
+def config_test():
+    return {
+        "database_configured": DATABASE_URL is not None,
+        "database_url": DATABASE_URL
+    }
 
 
 @app.get("/todos")
@@ -50,7 +60,7 @@ def delete_todo(todo_id:int):
     for todo in todos:
         if todo["id"]==todo_id:
             todos.remove(todo)
-            return {"massage":"deleted todo id {todo_id}"}
+            return {"massage":f"deleted todo id {todo_id}"}
     raise HTTPException(status_code=404, detail="todo not available")
 
 
