@@ -3,7 +3,7 @@ from sqlalchemy.orm import mapped_column, Mapped
 
 from .database import Base
 
-class todo(Base):
+class Todo(Base):
     __tablename__= "Todos"
     id : Mapped[int] = mapped_column(
         Integer,

@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import get_db, Base, engine
-from . import models
+# from . import models
+from .models import Todo
 
 debugs:bool =False
 app = FastAPI(title="Todo App", debug = debugs)
@@ -15,11 +16,10 @@ class todoCreate(BaseModel):
     discription: str
     completed: bool=False
     
-todos = []
+# todos = []
+# next_id = 1
 
-next_id = 1
-
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 @app.get("/home")
 def home():
@@ -28,51 +28,74 @@ def home():
 
 
 @app.get("/todos")
-def get_todos():
+def get_todos(db:Session=Depends(get_db)):
+    todos=db.query(Todo).all()
     return todos
 
 
 @app.post("/todo")
-def create_todo(todo: todoCreate):
-    global next_id
-    new_todo={
-        "id":next_id,
-        "title":todo.title,
-        "discription":todo.discription,
-        "completed": todo.completed
+def create_todo(todo: todoCreate,db:Session=Depends(get_db)):
+    new_todo= Todo(
+        title = todo.title,
+        discription = todo.discription,
+        completed = todo.completed
+        )
+    db.add(new_todo)
+    db.commit()
+    db.refresh(new_todo)
+    return {
+        "details": "todo addeed",
+        "todo": new_todo
     }
-    todos.append(new_todo)
-    next_id+=1
-    return todos
 
 
 @app.get("/todos/{todo_id}")
-def get_todo(todo_id: int):
-    for todo in todos:
-        if todo["id"]==todo_id:
-            return todo
-        
-    raise HTTPException(status_code=404, detail="todo not found")
+def get_todo(todo_id: int,db:Session=Depends(get_db)):
+    todo=db.query(Todo).filter(Todo.id==todo_id).first()
+    if not todo:
+        raise HTTPException(
+            status_code=404,
+            detail="Todo not found"
+        )
+    return todo
 
 
 @app.delete("/delete/{todo_id}")
-def delete_todo(todo_id:int):
-    for todo in todos:
-        if todo["id"]==todo_id:
-            todos.remove(todo)
-            return {"massage":f"deleted todo id {todo_id}"}
-    raise HTTPException(status_code=404, detail="todo not available")
-
+def delete_todo(todo_id:int,db:Session=Depends(get_db)):
+    todo=db.query(Todo).filter(Todo.id==todo_id).first()
+    if not todo:
+            raise HTTPException(
+                status_code=404,
+                detail="Todo not found"
+            )
+    db.delete(todo)
+    db.commit()
+    return {
+        "message": "Todo deleted successfully",
+        "todo_id": todo_id
+    }
+    
 
 @app.put("/update/{todo_id}")
-def update_todo(todo_id: int, new_todo:todoCreate):
-    for todo in todos:
-        if todo["id"]==todo_id:
-            todo["title"] = new_todo.title
-            todo["discription"] =new_todo.discription
-            todo["completed"] =new_todo.completed
-            return {"details" : "todo updated"}
-    raise HTTPException(status_code=404, detail="todo not available")
+def update_todo(todo_id: int, new_todo:todoCreate, db:Session=Depends(get_db)):
+    todo=db.query(Todo).filter(Todo.id==todo_id).first()
+    if not todo:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Todo not found"
+                )
+    update_data = new_todo.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        if field == "discription":
+            field = "description"
+
+        setattr(todo, field, value)
+
+    db.commit()
+    db.refresh(todo)
+
+    return todo
 
 @app.get("/config-test")
 def config_test():
