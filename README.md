@@ -209,3 +209,8 @@ used basic instruction to create table in the database
 Base.metadata.create_all(bind=engine)
 
 # phase 9 full crud operation used db table 
+
+
+#phase 10 practice again full with test app to use databse connection table creation and all needed works
+
+
